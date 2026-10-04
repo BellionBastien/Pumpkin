@@ -11,6 +11,7 @@ use crate::plugin::PluginManager;
 use crate::plugin::loader::PluginLoader;
 use crate::plugin::player::player_login::PlayerLoginEvent;
 use crate::plugin::server::server_broadcast::ServerBroadcastEvent;
+use crate::server::tick_histogram::TickDurationHistogram;
 use crate::server::tick_rate_manager::ServerTickRateManager;
 use crate::world::WorldPortal;
 use crate::world::custom_bossbar::CustomBossbars;
@@ -59,6 +60,7 @@ pub mod recipe;
 pub mod scheduler;
 pub mod seasonal_events;
 pub mod server_test_manager;
+pub mod tick_histogram;
 pub mod tick_rate_manager;
 pub mod ticker;
 
@@ -136,6 +138,8 @@ pub struct Server {
     pub aggregated_tick_times_nanos: AtomicI64,
     /// Total number of ticks processed by the server
     pub tick_count: AtomicI32,
+    /// Distribution of tick durations since startup, exported by the metrics endpoint
+    pub tick_duration_histogram: TickDurationHistogram,
     /// Owns the server-wide tick profiling session used by `/debug`.
     pub(crate) debug_profiler: debug_profiler::DebugProfiler,
     /// Random unique Server ID used by Bedrock Edition
@@ -302,6 +306,7 @@ impl Server {
             tick_times_nanos: std::sync::Mutex::new([0; 100]),
             aggregated_tick_times_nanos: AtomicI64::new(0),
             tick_count: AtomicI32::new(0),
+            tick_duration_histogram: TickDurationHistogram::default(),
             debug_profiler: debug_profiler::DebugProfiler::new(),
             tasks: TaskTracker::new(),
             runtime: tokio::runtime::Handle::current(),
@@ -1205,6 +1210,7 @@ impl Server {
 
         self.aggregated_tick_times_nanos
             .fetch_add(tick_duration_nanos - old_time, Ordering::Relaxed);
+        self.tick_duration_histogram.observe(tick_duration_nanos);
 
         let target_tick_nanos = self.tick_rate_manager.nanoseconds_per_tick();
         let idle_nanos = target_tick_nanos.saturating_sub(tick_duration_nanos);
