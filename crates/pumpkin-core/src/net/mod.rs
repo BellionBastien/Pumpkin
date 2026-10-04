@@ -36,6 +36,7 @@ pub mod chunk_sender;
 pub use chunk_sender::ChunkSender;
 pub mod java;
 pub mod lan_broadcast;
+pub mod metrics;
 pub mod packet_limiter;
 pub use packet_limiter::PacketRateLimiter;
 mod proxy;
