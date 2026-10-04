@@ -19,6 +19,8 @@ use tracing::{debug, error, warn};
 pub mod fun;
 /// Server logging configuration options.
 pub mod logging;
+/// Prometheus metrics endpoint configuration options.
+pub mod metrics;
 /// Networking and protocol configuration options.
 pub mod networking;
 /// Plugin management configuration options.
@@ -66,6 +68,7 @@ pub mod whitelist;
 pub mod world;
 
 use advancement::AdvancementConfig;
+use metrics::MetricsConfig;
 use networking::NetworkingConfig;
 use player_data::PlayerDataConfig;
 use resource_pack::ResourcePackConfig;
@@ -176,6 +179,8 @@ pub struct AdvancedConfiguration {
     pub plugins: PluginsConfig,
     /// Advancement configuration
     pub advancement: AdvancementConfig,
+    /// Prometheus metrics endpoint configuration.
+    pub metrics: MetricsConfig,
 }
 
 /// Basic configuration for core server settings.
